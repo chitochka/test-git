@@ -3,3 +3,14 @@ module.exports = {
   PORT: 27017,
   DB: "bezkoder_db"
 };
+
+/*
+{
+    "username": "aaa",
+    "email": "String",
+    "password": "String"
+}
+
+
+
+*/

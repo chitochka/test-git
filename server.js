@@ -4,38 +4,47 @@ const dbConfig = require("./app/config/db.config");
 
 const app = express();
 
-var corsOptions = {
-  origin: "http://localhost:8081"
-};
 
+var corsOptions = { origin: "http://localhost:8080"};
 app.use(cors(corsOptions));
+
 
 // parse requests of content-type - application/json
 app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+  extended: true
+}));
 
 const db = require("./app/models");
 const Role = db.role;
+console.log(Role)
+console.log("Role")
+
+
 
 db.mongoose
-  .connect(`mongodb+srv://alex:alex@cluster0.zyelpcb.mongodb.net/authBez2y`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Successfully connect to MongoDB.");
-    initial();
-  })
-  .catch(err => {
-    console.error("Connection error", err);
-    process.exit();
-  });
+.connect('mongodb+srv://alex:alex@cluster0.zyelpcb.mongodb.net/authBez', {
+
+  // .connect(`mongodb://${dbConfig.HOST}:${dbConfig.PORT}/${dbConfig.DB}`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => {
+  console.log("Successfully connect to MongoDB.");
+  initial();
+})
+.catch(err => {
+  console.error("Connection error", err);
+  process.exit();
+});
 
 // simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.json({
+    message: "Welcome to bezkoder application."
+  });
 });
 
 // routes
@@ -45,41 +54,37 @@ require("./app/routes/user.routes")(app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+  console.log(`Server is on port ${PORT}.`);
 });
 
-function initial() {
-  Role.estimatedDocumentCount((err, count) => {
-    if (!err && count === 0) {
-      new Role({
-        name: "user"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
 
-        console.log("added 'user' to roles collection");
-      });
 
-      new Role({
-        name: "moderator"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
 
-        console.log("added 'moderator' to roles collection");
-      });
 
-      new Role({
-        name: "admin"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
+async function initial () {
+  console.log("\n\n initial")
 
-        console.log("added 'admin' to roles collection");
-      });
+  try {
+    const count = await Role.estimatedDocumentCount();
+    console.log('count = ', count)
+    if (!count) {
+      console.log('\n   создание Ролей\n')
+      const admin = new Role( {
+        value: 'ADMIN'
+      })
+      await admin.save()
+      const owner = new Role( {
+        value: 'OWNER'
+      })
+      await owner.save()
+      const renter = new Role( {
+        value: 'RENTER'
+      })
+      await renter.save()
+      console.log('\n    РолI срздана=\n')
     }
-  });
+  }
+  catch (e) {
+    console.log("\n\neerror initial =\n", e)
+  }
 }
