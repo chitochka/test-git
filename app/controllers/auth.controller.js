@@ -21,7 +21,8 @@ exports.signup = (req, res) => {
       res.status(500).send({ message: err });
       return;
     }
-
+    console.log('req.body=\n')
+    console.log(req.body)
     if (req.body.roles) {
       Role.find(
         {
@@ -45,12 +46,20 @@ exports.signup = (req, res) => {
         }
       );
     } else {
-      Role.findOne({ name: "user" }, (err, role) => {
+      console.log('---f user.save\n')
+      
+      console.log("Role")
+      console.log(Role)
+
+      Role.findOne({ value: "ADMIN" }, (err, role) => {
+        console.log('---f Role.findOne\n')
         if (err) {
           res.status(500).send({ message: err });
           return;
         }
+  console.log('user.roles')
 
+  console.log(user.roles)
         user.roles = [role._id];
         user.save(err => {
           if (err) {
@@ -66,16 +75,22 @@ exports.signup = (req, res) => {
 };
 
 exports.signin = (req, res) => {
+  
+  console.log('\nf-->signIn')
   User.findOne({
     username: req.body.username
   })
     .populate("roles", "-__v")
     .exec((err, user) => {
+       console.log('\nuser.findOne')
+  console.log('\nerr=',err)
+ 
       if (err) {
         res.status(500).send({ message: err });
         return;
       }
-
+      console.log('\nuser=', user)
+ 
       if (!user) {
         return res.status(404).send({ message: "User Not found." });
       }
@@ -99,11 +114,16 @@ exports.signin = (req, res) => {
                                 allowInsecureKeySizes: true,
                                 expiresIn: 86400, // 24 hours
                               });
-
+      
       var authorities = [];
-
+      console.log('\n---token---')
+      console.log(token)
+ 
+      console.log('\nuser roles=', user.roles)
+ 
+ 
       for (let i = 0; i < user.roles.length; i++) {
-        authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
+        authorities.push("ROLE_" + user.roles[i].value.toUpperCase());
       }
       res.status(200).send({
         id: user._id,
